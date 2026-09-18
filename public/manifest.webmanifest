@@ -1,0 +1,17 @@
+{
+  "name": "Vetted Resupply",
+  "short_name": "Resupply",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#160607",
+  "theme_color": "#160607",
+  "description": "Inventory, BOM, purchasing and order management for makers.",
+  "icons": [
+    {
+      "src": "/assets/vetted-resupply-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
