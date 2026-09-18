@@ -2391,9 +2391,10 @@ window.shopifyPage=function(){
         <h2>Import portable backup</h2><p class="muted">Importing replaces the current working database. A server restore point is kept so the previous data can be recovered.</p>
         <input type="file" accept=".json,application/json" onchange="v2Import(this)">
       </div>
-      <div class="card"><div class="between"><div><h2>Automatic app updates</h2><p class="muted">Once the owner connects a release channel, every installed computer can detect, download and install new Vetted Resupply versions automatically.</p></div></div><div id="vr-update-panel"><span class="muted">Loading update status…</span></div></div>
+      ${location.hostname==='127.0.0.1'||location.hostname==='localhost'?`<div class="card"><div class="between"><div><h2>Automatic app updates</h2><p class="muted">Once the owner connects a release channel, every installed computer can detect, download and install new Vetted Resupply versions automatically.</p></div></div><div id="vr-update-panel"><span class="muted">Loading update status…</span></div></div>`:''}
 `;
-    v2LoadRestorePoints();vrLoadUpdatePanel();
+    v2LoadRestorePoints();
+    if(location.hostname==='127.0.0.1'||location.hostname==='localhost')vrLoadUpdatePanel();
   };
   window.v2LoadRestorePoints=async function(){
     const box=$("restore-points"); if(!box)return;
@@ -2422,11 +2423,20 @@ window.shopifyPage=function(){
 })();
 
 async function vrLoadDisplayedVersion(){
+  const el=document.getElementById('vr-brand-version');
+  if(!el)return;
+  if(location.hostname!=='127.0.0.1'&&location.hostname!=='localhost'){
+    el.textContent='Version 2.18.1 • Mobile-ready + inventory resupply';
+    return;
+  }
   try{
-    const r=await fetch('/api/update/status',{cache:'no-store'}),j=await r.json();
+    const r=await fetch('/api/update/status',{cache:'no-store'});
+    if(!r.ok)return;
+    const text=await r.text();
+    if(!text.trim())return;
+    const j=JSON.parse(text);
     const v=j?.state?.currentVersion;
-    const el=document.getElementById('vr-brand-version');
-    if(el&&v)el.textContent=`Version ${v} • Mobile-ready + inventory resupply`;
+    if(v)el.textContent=`Version ${v} • Mobile-ready + inventory resupply`;
   }catch(_){}
 }
 
