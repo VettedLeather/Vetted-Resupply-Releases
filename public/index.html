@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- Cloudflare auto-deploy test -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vetted Resupply</title>
 <link rel="icon" type="image/png" href="/assets/vetted-resupply-icon.png">
@@ -12,12 +11,12 @@
 <link rel="apple-touch-icon" href="/assets/vetted-resupply-icon.png">
 <style>
 :root{--bg:#160607;--card:#0b0b0b;--line:#4a4a4a;--line-strong:#707070;--text:#fff;--muted:#aaa;--gold:#fff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px 'Times New Roman',Times,serif;line-height:1.5}
 header{padding:14px 24px 16px;border-bottom:2px solid #3c3c3c;background:#000;text-align:center}
 header b{font-size:40px;letter-spacing:.07em;font-weight:900}
 .brand-home{cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .brand-home:hover{opacity:.88}
-.brand-logo{display:block;width:min(980px,62.5vw);height:auto;max-height:190px;object-fit:contain}
+.brand-logo{display:block;width:min(980px,62.5vw);height:auto;max-height:190px;object-fit:contain;font-family:initial}
 header span{color:var(--muted);margin-left:14px;font-size:15px}
 nav{padding:14px 22px;border-bottom:2px solid var(--line-strong);display:flex;justify-content:center;align-items:center;gap:12px;overflow:auto;background:#050505;flex-wrap:wrap}.nav-pages{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;align-items:center}.location-switcher{display:flex;align-items:center;gap:8px;border:2px solid #595959;border-radius:9px;padding:5px 8px;background:#0b0b0b;white-space:nowrap}.location-switcher span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#bdbdbd}.location-switcher select{width:auto;min-width:150px;padding:7px 30px 7px 9px;border:0;background:#111;font-weight:800}.nav-page-btn{cursor:grab}.nav-page-btn:active{cursor:grabbing}.nav-page-btn.dragging{opacity:.45;border-style:dashed}.location-card.location-current{border-color:#8a8a8a;box-shadow:inset 0 0 0 1px #8a8a8a}main{max-width:1200px;margin:auto;padding:30px 26px}
 button,.btn{background:#0b0b0b;color:#fff;border:2px solid #4b4b4b;border-radius:8px;padding:11px 15px;font-size:15px;cursor:pointer;text-decoration:none}
@@ -25,7 +24,7 @@ button.primary{background:#fff;color:#000;border-color:#fff;font-weight:800}.act
 .card{background:#0b0b0b;border:2px solid #3f3f3f;border-radius:12px;padding:21px;margin-bottom:17px}.dashboard-link{cursor:pointer;transition:transform .12s ease,border-color .12s ease}.dashboard-link:hover{transform:translateY(-2px);border-color:#5a5a5a}.dashboard-link:focus{outline:2px solid #fff;outline-offset:2px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.between{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 h1,h2,h3{margin-top:0;line-height:1.2}h1{font-size:32px;margin-bottom:8px}h2{font-size:26px}h3{font-size:20px;margin-bottom:10px}.muted{color:var(--muted)}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:left;padding:13px 11px;border-bottom:2px solid var(--line);font-size:15px}th{color:#d4d4d4;font-size:13px;text-transform:uppercase;letter-spacing:.04em}.scroll{overflow:auto}
-input,select{background:#000;color:#fff;border:2px solid #454545;border-radius:7px;padding:11px 10px;width:100%;font-size:16px}label{display:block;color:#c5c5c5;font-size:14px;font-weight:600;margin:9px 0 5px}
+input,select{background:#000;color:#fff;border:2px solid #454545;border-radius:7px;padding:11px 10px;width:100%;font-size:16px}input:focus,select:focus{outline:2px solid #fff;outline-offset:1px;border-color:#fff}label{display:block;color:#c5c5c5;font-size:14px;font-weight:600;margin:9px 0 5px}
 .modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.box{background:#090909;border:2px solid #666;border-radius:10px;padding:18px;width:min(760px,100%);max-height:90vh;overflow:auto}
 .pill{display:inline-block;border:1px solid #444;border-radius:999px;padding:5px 9px;font-size:13px;color:#d0d0d0;background:#111}.comp,.variant{padding:12px;border:2px solid var(--line-strong);border-radius:7px;margin:8px 0}
 .metric{font-size:38px;font-weight:900;line-height:1.1;margin-top:5px}.danger{color:#ffb1b1}
@@ -159,7 +158,7 @@ table b{font-size:16px}
   font-size:17px;border:1px solid #454545;border-radius:10px;
   background:#080808;color:#fff;outline:none
 }
-.list-search input:focus{border-color:#aaa}
+.list-search input:focus{border-color:#fff;outline:2px solid #fff;outline-offset:1px}
 .list-search .search-icon{
   position:absolute;right:15px;top:50%;transform:translateY(-50%);
   color:#aaa;font-size:18px;pointer-events:none
@@ -252,7 +251,7 @@ nav button.active{background:#fff;color:#000;border-color:#fff}
 
 
 <body>
-<header style="position:relative"><div class="brand-home" onclick="go('dashboard')" title="Go to dashboard"><img class="brand-logo" src="/assets/vetted-resupply-logo.png" alt="Vetted Resupply"></div><div class="brand-motto">Built for growth and efficiency</div><div class="brand-version">Version 2.17.3 • Mobile-ready + inventory resupply</div><button class="exit-app" onclick="shutdownApp()">Exit</button></header><nav id="nav"></nav><main id="app"></main>
+<header style="position:relative"><div class="brand-home" onclick="go('dashboard')" title="Go to dashboard"><img class="brand-logo" src="/assets/vetted-resupply-logo.png" alt="Vetted Resupply"></div><div class="brand-motto">Built for growth and efficiency</div><div class="brand-version">Version 2.18.1 • Cloud account sign-in polish</div><button class="exit-app" onclick="shutdownApp()">Exit</button></header><nav id="nav"></nav><main id="app"></main>
 <div id="modal" class="modal"><div id="box" class="box"></div></div>
 <script>
 
@@ -358,6 +357,8 @@ async function vrCloudFetch(path,options={}){
 
 
 let VR_CLOUD_STATUS=null;
+let VR_CLOUD_MESSAGE='';
+let VR_CLOUD_MESSAGE_KIND='muted';
 let VR_CLOUD_APPLYING=false;let VR_CLOUD_PUSH_TIMER=null;
 let VR_CLOUD_POLL_TIMER=null;
 let VR_CLOUD_BUSY=false;
@@ -797,6 +798,12 @@ function go(page){
   render();
 }
 function render(){
+  // Account-first web experience: never expose business workspace data while signed out.
+  if(location.hostname === "app.vettedresupply.com" && !VR_CLOUD_STATUS?.signedIn){
+    $("nav").innerHTML="";
+    $("app").innerHTML=`<div style="max-width:760px;margin:0 auto">${cloudAccountCardHtml()}</div>`;
+    return;
+  }
   ensureLocations();
   const pages=getNavPages();
   if(!validPages.includes(tab))tab="dashboard";
@@ -908,8 +915,9 @@ function cloudAccountCardHtml(){
     `:`
       <div class="sync-simple-box">
         <h3>${signed?'Set up your business':'Create an account or sign in'}</h3>
-        ${!signed?`<div class="grid"><div><label>Email</label><input id="cloud-email" type="email" autocomplete="email" placeholder="you@example.com"></div><div><label>Password</label><input id="cloud-password" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div></div>
-        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="vrCloudSignUp()">Create account</button><button onclick="vrCloudSignIn()">Sign in</button><button onclick="vrCloudForgotPassword()">Forgot password</button></div>`:''}
+        ${!signed?`<div class="grid"><div><label>Email</label><input id="cloud-email" type="email" autocomplete="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter'){event.preventDefault();vrCloudSignIn()}"></div><div><label>Password</label><input id="cloud-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" onkeydown="if(event.key==='Enter'){event.preventDefault();vrCloudSignIn()}"></div></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="vrCloudSignUp()">Create account</button><button class="primary" onclick="vrCloudSignIn()">Sign in</button><button class="primary" onclick="vrCloudForgotPassword()">Forgot password</button></div>
+        ${VR_CLOUD_MESSAGE?`<div class="${VR_CLOUD_MESSAGE_KIND==='error'?'notice danger':'notice'}" style="margin-top:12px">${esc(VR_CLOUD_MESSAGE)}</div>`:''}`:''}
         ${signed?`<label style="margin-top:12px">Business name</label><input id="cloud-business-name" value="${esc(c.businessName||'')}" placeholder="Example: Vetted Leather"><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="vrCloudCreateBusiness()">Create my business</button>${support&&c.legacyAvailable?`<button onclick="vrCloudClaimLegacy()">Import legacy workspace</button>`:''}</div><p class="muted" style="margin-top:10px">Your business data will be backed up and synced automatically across computers signed into this account.</p>`:''}
       </div>
     `}
@@ -2255,16 +2263,18 @@ window.shopifyPage=function(){
   function vrCloudField(id){return String(document.getElementById(id)?.value||'').trim();}
   window.vrCloudCopySetupSql=async function(){try{const r=await vrCloudFetch('/api/cloud/setup-sql'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load Cloud setup SQL');await navigator.clipboard.writeText(j.sql||'');alert('Cloud Accounts setup SQL copied. Open the SAME Supabase project you already use, paste it into SQL Editor, and click Run. This is an owner-only one-time step.');}catch(e){alert(e.message);}};
   window.vrCloudSignUp=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await vrCloudFetch('/api/cloud/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not create account');if(j.needsEmailConfirmation){alert('Account created. Check your email and confirm the address, then come back here and click Sign in.');}else{alert('Account created and signed in.');}await vrLoadCloudStatus();render();}catch(e){alert(e.message);}};
-  window.vrCloudSignIn=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await vrCloudFetch('/api/cloud/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign in');vrCloudStoreAccount(j.account);
-VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}}render();alert(VR_CLOUD_STATUS?.businessId?'Signed in. Your Vetted Resupply business is connected on this computer.':'Signed in. Now move your existing workspace into this account.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
+  window.vrCloudSignIn=async function(){try{VR_CLOUD_MESSAGE='';const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await vrCloudFetch('/api/cloud/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign in');vrCloudStoreAccount(j.account);
+VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}}render();}catch(e){VR_CLOUD_APPLYING=false;VR_CLOUD_MESSAGE=e.message||'Could not sign in';VR_CLOUD_MESSAGE_KIND='error';render();}};
   window.vrCloudForgotPassword=async function(){
     try{
       const email=vrCloudField('cloud-email');
       if(!email)throw new Error('Enter your email address first.');
       const r=await vrCloudFetch('/api/cloud/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}),j=await r.json();
       if(!j.ok)throw new Error(j.error||'Could not send password reset email');
-      alert('Password reset email sent. Open the email on this computer while Vetted Resupply is running, then follow the link.');
-    }catch(e){alert(e.message);}
+      VR_CLOUD_MESSAGE='Password reset email sent. Open the email on this computer while Vetted Resupply is running, then follow the link.';
+      VR_CLOUD_MESSAGE_KIND='info';
+      render();
+    }catch(e){VR_CLOUD_MESSAGE=e.message||'Could not send password reset email';VR_CLOUD_MESSAGE_KIND='error';render();}
   };
   window.vrCloudCreateBusiness=async function(){
     try{
@@ -2299,7 +2309,7 @@ VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPol
     }catch(e){alert(e.message);}
   };
   window.vrCloudClaimLegacy=async function(){if(!confirm('Copy your current shared workspace into your Vetted Resupply Cloud account? The old workspace will be kept as a safety fallback.'))return;try{const businessName=vrCloudField('cloud-business-name')||'Vetted Leather';const r=await vrCloudFetch('/api/cloud/claim-legacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Migration failed');VR_CLOUD_STATUS=j.status;VR_SYNC_CONFIG={...(VR_SYNC_CONFIG||{}),enabled:false};VR_SYNC_STATUS='Synced';window.vrStartCloudPolling?.();render();alert('Migration complete. Your existing products, supplies, inventory, orders, BOMs and locations are now connected to your Vetted Resupply account. The legacy workspace was left intact as a backup.');}catch(e){alert(e.message);}};
-  window.vrCloudSignOut=async function(){if(!confirm('Sign out of Vetted Resupply Cloud on this computer? Your local data will remain here.'))return;try{const r=await vrCloudFetch('/api/cloud/signout',{method:'POST'}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign out');VR_CLOUD_STATUS=j.status;render();}catch(e){alert(e.message);}};
+  window.vrCloudSignOut=async function(){try{const r=await vrCloudFetch('/api/cloud/signout',{method:'POST'}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign out');clearInterval(VR_CLOUD_POLL_TIMER);vrCloudClearTokens();VR_CLOUD_STATUS=j.status||{signedIn:false,businessId:null};VR_CLOUD_MESSAGE='';render();}catch(e){VR_CLOUD_MESSAGE=e.message||'Could not sign out';VR_CLOUD_MESSAGE_KIND='error';render();}};
   window.vrCloudRefreshBusinesses=async function(){try{const r=await vrCloudFetch('/api/cloud/businesses'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load businesses');if((j.businesses||[]).length===1){await vrCloudFetch('/api/cloud/select-business',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessId:j.businesses[0].business_id})});await vrLoadCloudStatus();window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}render();}else alert('This account has '+(j.businesses||[]).length+' businesses. Business selection will be added before multi-business customer release.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrCloudPullNow=async function(){try{const r=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),j=await r.json();if(!j.ok||!j.data?.db)throw new Error(j.error||'Cloud pull failed');VR_CLOUD_APPLYING=true;db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;await vrLoadCloudStatus();render();alert('Latest cloud data loaded.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrPollCloud=async function(){if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY)return;VR_CLOUD_BUSY=true;try{const r=await vrCloudFetch('/api/cloud/pull?ts='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}}),j=await r.json();if(!j.ok)throw new Error(j.error||'Cloud sync failed');if(j.status)VR_CLOUD_STATUS=j.status;if(j.changed&&j.data?.db){VR_CLOUD_APPLYING=true;try{db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_SYNC_STATUS='Synced';render();}finally{VR_CLOUD_APPLYING=false;}}else VR_SYNC_STATUS='Synced';window.vrRefreshSyncBadge?.();}catch(e){VR_SYNC_STATUS='Sync error';console.warn('Cloud poll failed:',e);}finally{VR_CLOUD_BUSY=false;}};
