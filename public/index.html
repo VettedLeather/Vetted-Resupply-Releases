@@ -2228,7 +2228,37 @@ window.shopifyPage=function(){
     }catch(e){alert(e.message);}
   };
   window.vrCloudClaimLegacy=async function(){if(!confirm('Copy your current shared workspace into your Vetted Resupply Cloud account? The old workspace will be kept as a safety fallback.'))return;try{const businessName=vrCloudField('cloud-business-name')||'Vetted Leather';const r=await fetch('/api/cloud/claim-legacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Migration failed');VR_CLOUD_STATUS=j.status;VR_SYNC_CONFIG={...(VR_SYNC_CONFIG||{}),enabled:false};VR_SYNC_STATUS='Synced';window.vrStartCloudPolling?.();render();alert('Migration complete. Your existing products, supplies, inventory, orders, BOMs and locations are now connected to your Vetted Resupply account. The legacy workspace was left intact as a backup.');}catch(e){alert(e.message);}};
-  window.vrCloudSignOut=async function(){try{const r=await fetch('/api/cloud/signout',{method:'POST'}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign out');VR_CLOUD_STATUS=j.status;render();}catch(e){alert(e.message);}};
+ window.vrCloudSignOut=async function(){
+  try{
+    const r=await fetch('/api/cloud/signout',{method:'POST'});
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'Could not sign out');
+
+    // Stop this device from polling/pushing cloud data.
+    clearInterval(VR_CLOUD_POLL_TIMER);
+    clearTimeout(VR_CLOUD_PUSH_TIMER);
+    VR_CLOUD_BUSY=false;
+    VR_CLOUD_APPLYING=true;
+
+    // Remove this account's business data from this device only.
+    localStorage.removeItem(K);
+    localStorage.removeItem(LOCATION_KEY);
+
+    // Return the visible app to a clean starter state.
+    db=JSON.parse(JSON.stringify(starter));
+    activeLocationId="";
+    ensureLocations();
+
+    VR_CLOUD_STATUS=j.status;
+    VR_SYNC_STATUS="Local only";
+    VR_CLOUD_APPLYING=false;
+
+    render();
+  }catch(e){
+    VR_CLOUD_APPLYING=false;
+    alert(e.message);
+  }
+};
   window.vrCloudRefreshBusinesses=async function(){try{const r=await fetch('/api/cloud/businesses'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load businesses');if((j.businesses||[]).length===1){await fetch('/api/cloud/select-business',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessId:j.businesses[0].business_id})});await vrLoadCloudStatus();window.vrStartCloudPolling?.();const p=await fetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}render();}else alert('This account has '+(j.businesses||[]).length+' businesses. Business selection will be added before multi-business customer release.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrCloudPullNow=async function(){try{const r=await fetch('/api/cloud/pull-force',{method:'POST'}),j=await r.json();if(!j.ok||!j.data?.db)throw new Error(j.error||'Cloud pull failed');VR_CLOUD_APPLYING=true;db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;await vrLoadCloudStatus();render();alert('Latest cloud data loaded.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrPollCloud=async function(){if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY)return;VR_CLOUD_BUSY=true;try{const r=await fetch('/api/cloud/pull?ts='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}}),j=await r.json();if(!j.ok)throw new Error(j.error||'Cloud sync failed');if(j.status)VR_CLOUD_STATUS=j.status;if(j.changed&&j.data?.db){VR_CLOUD_APPLYING=true;try{db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_SYNC_STATUS='Synced';render();}finally{VR_CLOUD_APPLYING=false;}}else VR_SYNC_STATUS='Synced';window.vrRefreshSyncBadge?.();}catch(e){VR_SYNC_STATUS='Sync error';console.warn('Cloud poll failed:',e);}finally{VR_CLOUD_BUSY=false;}};
