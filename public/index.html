@@ -308,6 +308,35 @@ let VR_SYNC_APPLYING=false;
 let VR_SYNC_PUSH_TIMER=null;
 let VR_SYNC_POLL_TIMER=null;
 let VR_SYNC_STATUS="Local only";
+  const VR_CLOUD_API="https://vetted-resupply-api.vettedresupply.workers.dev";
+const VR_CLOUD_ACCESS_TOKEN_KEY="vetted_resupply_cloud_access_token";
+const VR_CLOUD_REFRESH_TOKEN_KEY="vetted_resupply_cloud_refresh_token";
+
+function vrCloudStoreAccount(account){
+  if(account?.accessToken){
+    localStorage.setItem(VR_CLOUD_ACCESS_TOKEN_KEY,account.accessToken);
+  }
+  if(account?.refreshToken){
+    localStorage.setItem(VR_CLOUD_REFRESH_TOKEN_KEY,account.refreshToken);
+  }
+}
+
+function vrCloudClearTokens(){
+  localStorage.removeItem(VR_CLOUD_ACCESS_TOKEN_KEY);
+  localStorage.removeItem(VR_CLOUD_REFRESH_TOKEN_KEY);
+}
+
+async function vrCloudFetch(path,options={}){
+  const url=VR_CLOUD_API+path;
+  const headers=new Headers(options.headers||{});
+  const token=localStorage.getItem(VR_CLOUD_ACCESS_TOKEN_KEY);
+
+  if(token && !headers.has("Authorization")){
+    headers.set("Authorization","Bearer "+token);
+  }
+
+  return fetch(url,{...options,headers});
+}
 let VR_CLOUD_STATUS=null;
 let VR_CLOUD_APPLYING=false;
 let VR_CLOUD_PUSH_TIMER=null;
@@ -2177,13 +2206,66 @@ window.shopifyPage=function(){
   window.vrLoadSyncConfig=async function(){
     try{const r=await fetch('/api/sync/config'),j=await r.json();if(j.ok){VR_SYNC_CONFIG=j.config;VR_SYNC_STATUS=j.config?.enabled?'Synced':'Local only';window.vrRefreshSyncBadge?.();}}catch(_){}
   }
-  window.vrLoadCloudStatus=async function(){
-    try{const r=await fetch('/api/cloud/status?ts='+Date.now(),{cache:'no-store'}),j=await r.json();if(j.ok){VR_CLOUD_STATUS=j.status;if(VR_CLOUD_STATUS?.businessId)VR_SYNC_STATUS='Synced';}}catch(e){console.warn('Cloud status unavailable:',e);}
-  };
+window.vrLoadCloudStatus=async function(){
+  try{
+    const r=await vrCloudFetch('/api/cloud/status?ts='+Date.now(),{
+      cache:'no-store'
+    });
+    const j=await r.json();
+
+    if(j.ok){
+      VR_CLOUD_STATUS=j.status;
+      if(VR_CLOUD_STATUS?.businessId)VR_SYNC_STATUS='Synced';
+    }
+  }catch(e){
+    console.warn('Cloud status unavailable:',e);
+  }
+};    
   function vrCloudField(id){return String(document.getElementById(id)?.value||'').trim();}
   window.vrCloudCopySetupSql=async function(){try{const r=await fetch('/api/cloud/setup-sql'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load Cloud setup SQL');await navigator.clipboard.writeText(j.sql||'');alert('Cloud Accounts setup SQL copied. Open the SAME Supabase project you already use, paste it into SQL Editor, and click Run. This is an owner-only one-time step.');}catch(e){alert(e.message);}};
   window.vrCloudSignUp=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await fetch('/api/cloud/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not create account');if(j.needsEmailConfirmation){alert('Account created. Check your email and confirm the address, then come back here and click Sign in.');}else{alert('Account created and signed in.');}await vrLoadCloudStatus();render();}catch(e){alert(e.message);}};
- window.vrCloudSignIn=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await fetch('https://vetted-resupply-api.vettedresupply.workers.dev/api/cloud/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign in');VR_CLOUD_STATUS=j.status;if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPolling?.();const p=await fetch('https://vetted-resupply-api.vettedresupply.workers.dev/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}}render();}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
+window.vrCloudSignIn=async function(){
+  try{
+    const email=vrCloudField('cloud-email');
+    const password=vrCloudField('cloud-password');
+
+    const r=await vrCloudFetch('/api/cloud/signin',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    });
+
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'Could not sign in');
+
+    vrCloudStoreAccount(j.account);
+    VR_CLOUD_STATUS=j.status;
+
+    if(VR_CLOUD_STATUS?.businessId){
+      const p=await vrCloudFetch('/api/cloud/pull-force',{
+        method:'POST'
+      });
+
+      const pj=await p.json();
+      if(!pj.ok)throw new Error(pj.error||'Could not load cloud data');
+
+      if(pj.data?.db){
+        VR_CLOUD_APPLYING=true;
+        db=pj.data.db;
+        ensureLocations();
+        localStorage.setItem(K,JSON.stringify(db));
+        VR_CLOUD_APPLYING=false;
+      }
+
+      window.vrStartCloudPolling?.();
+    }
+
+    render();
+  }catch(e){
+    VR_CLOUD_APPLYING=false;
+    alert(e.message);
+  }
+};
   window.vrCloudForgotPassword=async function(){
     try{
       const email=vrCloudField('cloud-email');
