@@ -2230,7 +2230,7 @@ window.shopifyPage=function(){
   window.vrCloudClaimLegacy=async function(){if(!confirm('Copy your current shared workspace into your Vetted Resupply Cloud account? The old workspace will be kept as a safety fallback.'))return;try{const businessName=vrCloudField('cloud-business-name')||'Vetted Leather';const r=await fetch('/api/cloud/claim-legacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Migration failed');VR_CLOUD_STATUS=j.status;VR_SYNC_CONFIG={...(VR_SYNC_CONFIG||{}),enabled:false};VR_SYNC_STATUS='Synced';window.vrStartCloudPolling?.();render();alert('Migration complete. Your existing products, supplies, inventory, orders, BOMs and locations are now connected to your Vetted Resupply account. The legacy workspace was left intact as a backup.');}catch(e){alert(e.message);}};
  window.vrCloudSignOut=async function(){
   try{
-    const r=await fetch('/api/cloud/signout',{method:'POST'});
+   const r=await fetch('https://vetted-resupply-api.vettedresupply.workers.dev/api/cloud/signout',{method:'POST'});
     const j=await r.json();
     if(!j.ok)throw new Error(j.error||'Could not sign out');
 
