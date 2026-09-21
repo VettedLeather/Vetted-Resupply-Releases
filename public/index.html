@@ -2492,18 +2492,48 @@ async function restorePermanentBackupIfNeeded(){
   }catch(_){}
 }
 (async()=>{
-  await restorePermanentBackupIfNeeded();
-  SERVER_BACKUP_READY=true;
-  ensureLocations();save();
-  tab=validPages.includes(localStorage.getItem(PAGE_KEY))?localStorage.getItem(PAGE_KEY):"dashboard";
-
-  // Live sync is optional. A cloud/configuration failure must never prevent the
-  // normal Vetted Resupply interface from loading.
+  // Check cloud authentication BEFORE restoring any saved business data.
+  // This prevents a signed-out device from resurrecting the previous
+  // customer's permanent backup.
   try{
     await window.vrLoadSyncConfig?.();
     await window.vrLoadCloudStatus?.();
-    if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId) await window.vrPollCloud?.();
-    else if(VR_SYNC_CONFIG?.enabled&&VR_SYNC_CONFIG?.configured) await window.vrPollSharedWorkspace?.();
+  }catch(e){
+    console.warn("Cloud status startup check skipped:",e);
+  }
+
+  if(VR_CLOUD_STATUS?.signedIn){
+    // Signed-in users may restore the permanent local/server backup.
+    await restorePermanentBackupIfNeeded();
+  }else{
+    // Signed-out users must never see previously cached business data.
+    localStorage.removeItem(K);
+    localStorage.removeItem(PAGE_KEY);
+    localStorage.removeItem(FILTER_KEY);
+    localStorage.removeItem(LOCATION_KEY);
+    db=JSON.parse(JSON.stringify(starter));
+    activeLocationId="";
+    tab="dashboard";
+  }
+
+  SERVER_BACKUP_READY=true;
+
+  if(VR_CLOUD_STATUS?.signedIn){
+    ensureLocations();
+    save();
+    tab=validPages.includes(localStorage.getItem(PAGE_KEY))
+      ? localStorage.getItem(PAGE_KEY)
+      : "dashboard";
+  }
+
+  // If signed in, load this account's cloud data.
+  // Otherwise only use shared workspace sync when intentionally configured.
+  try{
+    if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId){
+      await window.vrPollCloud?.();
+    }else if(VR_SYNC_CONFIG?.enabled&&VR_SYNC_CONFIG?.configured){
+      await window.vrPollSharedWorkspace?.();
+    }
   }catch(e){
     console.warn("Cloud/live sync startup skipped:",e);
     VR_SYNC_STATUS="Sync error";
@@ -2513,7 +2543,12 @@ async function restorePermanentBackupIfNeeded(){
   await vrLoadDisplayedVersion();
   try{setTimeout(()=>window.vrCloudCompletePasswordReset?.(),350);}catch(_){}
 
-  try{window.vrStartCloudPolling?.(); if(!VR_CLOUD_STATUS?.businessId)window.vrStartSyncPolling?.();}catch(e){console.warn("Sync polling unavailable:",e);}
+  try{
+    window.vrStartCloudPolling?.();
+    if(!VR_CLOUD_STATUS?.businessId)window.vrStartSyncPolling?.();
+  }catch(e){
+    console.warn("Sync polling unavailable:",e);
+  }
 })();
 
 
