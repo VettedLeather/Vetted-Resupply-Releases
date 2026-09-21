@@ -2511,8 +2511,15 @@ async function restorePermanentBackupIfNeeded(){
     localStorage.removeItem(PAGE_KEY);
     localStorage.removeItem(FILTER_KEY);
     localStorage.removeItem(LOCATION_KEY);
-    db=JSON.parse(JSON.stringify(starter));
-    activeLocationId="";
+db={
+  suppliers:[],
+  hardware:[],
+  products:[],
+  orders:[],
+  bom:{},
+  inventory:{},
+  locations:[]
+};    activeLocationId="";
     tab="dashboard";
   }
 
