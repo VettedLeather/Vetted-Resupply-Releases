@@ -491,8 +491,7 @@ function switchLocation(id){
   activeLocationId=id;localStorage.setItem(LOCATION_KEY,id);render();
 }
 function locationSelectorHtml(){
-  ensureLocations();const active=db.locations.filter(l=>l.active!==false);
-  return `<div class="location-switcher" title="Switch location"><span>Location</span><select onchange="switchLocation(this.value)">${active.map(l=>`<option value="${esc(l.id)}" ${l.id===activeLocationId?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>`;
+if(VR_CLOUD_STATUS?.signedIn || localStorage.getItem(K)) ensureLocations(); const active=(db.locations||[]).filter(l=>l.active!==false);  return `<div class="location-switcher" title="Switch location"><span>Location</span><select onchange="switchLocation(this.value)">${active.map(l=>`<option value="${esc(l.id)}" ${l.id===activeLocationId?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>`;
 }
 function getNavPages(){
   let order=[];try{order=JSON.parse(localStorage.getItem(NAV_KEY)||"[]")}catch(_){order=[]}
@@ -738,8 +737,7 @@ function go(page){
   render();
 }
 function render(){
-  ensureLocations();
-  const pages=getNavPages();
+if(VR_CLOUD_STATUS?.signedIn || localStorage.getItem(K)) ensureLocations();  const pages=getNavPages();
   if(!validPages.includes(tab))tab="dashboard";
   $("nav").innerHTML=locationSelectorHtml()+`<div class="nav-pages">${pages.map(([key,label])=>`<button draggable="true" data-page="${key}" class="nav-page-btn ${tab===key?"active":""}" onclick="go('${key}')" ondragstart="navDragStart(event)" ondragend="navDragEnd(event)" ondragover="navDragOver(event)">${label}</button>`).join("")}</div>`;
   if(tab==="purchasing"){purchasing();return}
@@ -2244,10 +2242,17 @@ window.shopifyPage=function(){
     localStorage.removeItem(K);
     localStorage.removeItem(LOCATION_KEY);
 
-    // Return the visible app to a clean starter state.
-    db=JSON.parse(JSON.stringify(starter));
-    activeLocationId="";
-    ensureLocations();
+    // Signed out means no business data remains visible on this device.
+db={
+  suppliers:[],
+  hardware:[],
+  products:[],
+  orders:[],
+  bom:{},
+  inventory:{},
+  locations:[]
+};
+activeLocationId="";
 
     VR_CLOUD_STATUS=j.status;
     VR_SYNC_STATUS="Local only";
