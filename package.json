@@ -1,0 +1,76 @@
+{
+  "name": "vetted-resupply",
+  "version": "2.19.0",
+  "private": true,
+  "description": "Vetted Resupply desktop application",
+  "productName": "Vetted Resupply",
+  "main": "desktop.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "build:win": "electron-builder --win nsis",
+    "build:mac": "electron-builder --mac dmg"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.vettedresupply.desktop",
+    "productName": "Vetted Resupply",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "desktop.js",
+      "server.js",
+      "setup.js",
+      "updater.js",
+      "apply-update.js",
+      "script1.js",
+      "public/**/*",
+      "package.json",
+      ".env.example",
+      "CLOUD_SERVICE.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/assets/vetted-resupply-icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.business",
+      "artifactName": "Vetted Resupply Setup ${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Vetted Resupply",
+      "artifactName": "Vetted Resupply Setup ${version}.${ext}"
+    }
+  }
+}
