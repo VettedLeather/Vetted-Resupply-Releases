@@ -1,4 +1,4 @@
-const CACHE='vetted-resupply-shell-2.17.3';
+const CACHE='vetted-resupply-shell-2.19.0';
 const CORE=['/','/manifest.webmanifest','/assets/vetted-resupply-icon.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
