@@ -24,7 +24,7 @@ button.primary{background:#fff;color:#000;border-color:#fff;font-weight:800}.act
 .card{background:#0b0b0b;border:2px solid #3f3f3f;border-radius:12px;padding:21px;margin-bottom:17px}.dashboard-link{cursor:pointer;transition:transform .12s ease,border-color .12s ease}.dashboard-link:hover{transform:translateY(-2px);border-color:#5a5a5a}.dashboard-link:focus{outline:2px solid #fff;outline-offset:2px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.between{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 h1,h2,h3{margin-top:0;line-height:1.2}h1{font-size:32px;margin-bottom:8px}h2{font-size:26px}h3{font-size:20px;margin-bottom:10px}.muted{color:var(--muted)}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:left;padding:13px 11px;border-bottom:2px solid var(--line);font-size:15px}th{color:#d4d4d4;font-size:13px;text-transform:uppercase;letter-spacing:.04em}.scroll{overflow:auto}
-input,select{background:#000;color:#fff;border:2px solid #454545;border-radius:7px;padding:11px 10px;width:100%;font-size:16px}input:focus,select:focus{border-color:#fff!important;outline:none!important;box-shadow:none!important}label{display:block;color:#c5c5c5;font-size:14px;font-weight:600;margin:9px 0 5px}
+input,select{background:#000;color:#fff;border:2px solid #454545;border-radius:7px;padding:11px 10px;width:100%;font-size:16px}label{display:block;color:#c5c5c5;font-size:14px;font-weight:600;margin:9px 0 5px}
 .modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.box{background:#090909;border:2px solid #666;border-radius:10px;padding:18px;width:min(760px,100%);max-height:90vh;overflow:auto}
 .pill{display:inline-block;border:1px solid #444;border-radius:999px;padding:5px 9px;font-size:13px;color:#d0d0d0;background:#111}.comp,.variant{padding:12px;border:2px solid var(--line-strong);border-radius:7px;margin:8px 0}
 .metric{font-size:38px;font-weight:900;line-height:1.1;margin-top:5px}.danger{color:#ffb1b1}
@@ -102,7 +102,7 @@ html{scrollbar-color:#4b4b4b #090909;scrollbar-width:thin}
 .sync-code-input{min-width:280px;flex:1}
 .sync-advanced{margin-top:14px;padding-top:14px;border-top:1px solid #444}
 
-/* phone-first responsive layout */
+/* 2.17.3 phone-first responsive layout */
 @media(max-width:600px){
  body{font-size:16px;padding-bottom:76px} header{padding:12px 10px}.brand-logo{width:94vw;max-height:100px}.brand-motto{font-size:12px}.brand-version{font-size:9px}
  nav{position:sticky;top:0;z-index:50;padding:8px;gap:7px;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -158,7 +158,7 @@ table b{font-size:16px}
   font-size:17px;border:1px solid #454545;border-radius:10px;
   background:#080808;color:#fff;outline:none
 }
-.list-search input:focus{border-color:#fff}
+.list-search input:focus{border-color:#aaa}
 .list-search .search-icon{
   position:absolute;right:15px;top:50%;transform:translateY(-50%);
   color:#aaa;font-size:18px;pointer-events:none
@@ -251,7 +251,7 @@ nav button.active{background:#fff;color:#000;border-color:#fff}
 
 
 <body>
-<header style="position:relative"><div class="brand-home" onclick="go('dashboard')" title="Go to dashboard"><img class="brand-logo" src="/assets/vetted-resupply-logo.png" alt="Vetted Resupply"></div><div class="brand-motto">Built for growth and efficiency</div><div class="brand-version" id="vr-brand-version">Version loading… • Mobile-ready + inventory resupply</div><button class="exit-app" onclick="shutdownApp()">Exit</button></header><nav id="nav"></nav><main id="app"></main>
+<header style="position:relative"><div class="brand-home" onclick="go('dashboard')" title="Go to dashboard"><img class="brand-logo" src="/assets/vetted-resupply-logo.png" alt="Vetted Resupply"></div><div class="brand-motto">Built for growth and efficiency</div><div class="brand-version">Version 2.17.3 • Mobile-ready + inventory resupply</div><button class="exit-app" onclick="shutdownApp()">Exit</button></header><nav id="nav"></nav><main id="app"></main>
 <div id="modal" class="modal"><div id="box" class="box"></div></div>
 <script>
 
@@ -262,25 +262,38 @@ let SERVER_BACKUP_READY=false;
 let db=JSON.parse(localStorage.getItem(K)||"null")||starter;
 const PAGE_KEY=K+"_page";
 const FILTER_KEY=K+"_filters";
-const validPages=["dashboard","products","hardware","suppliers","orders","purchasing","inventory","shopify","locations","account","backup"];
+const validPages=["dashboard","products","hardware","suppliers","orders","purchasing","inventory","shopify","locations","backup"];
 const NAV_KEY=K+"_nav_order";
 const LOCATION_KEY=K+"_active_location";
 let activeLocationId=localStorage.getItem(LOCATION_KEY)||"";
 const DEFAULT_NAV_PAGES=[
   ["dashboard","Dashboard"],["products","Products"],["hardware","Supplies"],
   ["suppliers","Suppliers"],["orders","Orders"],["purchasing","Purchasing"],
-  ["inventory","Inventory"],["shopify","Shopify"],["locations","Locations"],["account","Account"],["backup","Backup"]
+  ["inventory","Inventory"],["shopify","Shopify"],["locations","Locations"],["backup","Backup"]
 ];
 let tab=validPages.includes(localStorage.getItem(PAGE_KEY))?localStorage.getItem(PAGE_KEY):"dashboard";
 let pageFilters=(()=>{try{return JSON.parse(localStorage.getItem(FILTER_KEY)||"{}")}catch(e){return {}}})();
 const $=x=>document.getElementById(x), uid=p=>p+"_"+Math.random().toString(36).slice(2,9);
 async function openExternal(url){
   if(!url || !/^https?:\/\//i.test(url)) return;
-  if(location.hostname === "app.vettedresupply.com"){ window.open(url,'_blank','noopener,noreferrer'); return; }
+
+  // Web app: open external links normally.
+  if(location.hostname === "app.vettedresupply.com"){
+    window.open(url,'_blank','noopener,noreferrer');
+    return;
+  }
+
+  // Desktop app: let the local server open the user's default browser.
   try{
-    const r=await fetch('/api/system/open-external',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    const r=await fetch('/api/system/open-external',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
     if(!r.ok) throw new Error('Open failed');
-  }catch(e){ window.open(url,'_blank','noopener,noreferrer'); }
+  }catch(e){
+    window.open(url,'_blank','noopener,noreferrer');
+  }
 }
 document.addEventListener('click',function(e){
   const a=e.target.closest('a[href]');
@@ -311,8 +324,8 @@ let VR_SYNC_APPLYING=false;
 let VR_SYNC_PUSH_TIMER=null;
 let VR_SYNC_POLL_TIMER=null;
 let VR_SYNC_STATUS="Local only";
-const VR_IS_WEB = location.hostname === "app.vettedresupply.com";
-const VR_CLOUD_API = VR_IS_WEB ? "https://vetted-resupply-api.vettedresupply.workers.dev" : "";
+
+const VR_CLOUD_API="https://vetted-resupply-api.vettedresupply.workers.dev";
 const VR_CLOUD_ACCESS_TOKEN_KEY="vetted_resupply_cloud_access_token";
 const VR_CLOUD_REFRESH_TOKEN_KEY="vetted_resupply_cloud_refresh_token";
 
@@ -341,11 +354,58 @@ async function vrCloudFetch(path,options={}){
 
   return fetch(url,{...options,headers});
 }
+
+
 let VR_CLOUD_STATUS=null;
-let VR_CLOUD_APPLYING=false;
-let VR_CLOUD_PUSH_TIMER=null;
+let VR_CLOUD_APPLYING=false;let VR_CLOUD_PUSH_TIMER=null;
 let VR_CLOUD_POLL_TIMER=null;
 let VR_CLOUD_BUSY=false;
+
+// Production-hardening state.
+// VR_CLOUD_REVISION is the exact cloud revision this device last confirmed.
+// VR_CLOUD_DIRTY prevents polling from replacing local edits before they are pushed.
+let VR_CLOUD_REVISION=null;
+let VR_CLOUD_DIRTY=false;
+let VR_CLOUD_CONFLICT_ALERTED=false;
+const VR_CLOUD_RECOVERY_KEY=K+"_cloud_recovery";
+
+function vrValidWorkspace(candidate){
+  return !!candidate &&
+    typeof candidate==="object" &&
+    !Array.isArray(candidate) &&
+    Array.isArray(candidate.suppliers) &&
+    Array.isArray(candidate.hardware) &&
+    Array.isArray(candidate.products) &&
+    Array.isArray(candidate.orders);
+}
+
+function vrSaveCloudRecovery(reason){
+  try{
+    localStorage.setItem(VR_CLOUD_RECOVERY_KEY,JSON.stringify({
+      savedAt:new Date().toISOString(),
+      reason:String(reason||"cloud replacement"),
+      revision:VR_CLOUD_REVISION,
+      db
+    }));
+  }catch(e){console.warn("Could not create cloud recovery copy:",e);}
+}
+
+function vrApplyCloudWorkspace(candidate,revision,reason){
+  if(!vrValidWorkspace(candidate))throw new Error("Cloud returned an invalid Vetted Resupply workspace. Local data was not replaced.");
+  vrSaveCloudRecovery(reason||"cloud pull");
+  VR_CLOUD_APPLYING=true;
+  try{
+    db=candidate;
+    ensureLocations();
+    localStorage.setItem(K,JSON.stringify(db));
+    const n=Number(revision);
+    if(Number.isInteger(n)&&n>=0)VR_CLOUD_REVISION=n;
+    VR_CLOUD_DIRTY=false;
+    VR_CLOUD_CONFLICT_ALERTED=false;
+  }finally{
+    VR_CLOUD_APPLYING=false;
+  }
+}
 
 // Global sync badge refresher. Defined early so Cloud Account actions can safely
 // refresh status even before the Locations renderer has initialized later helpers.
@@ -356,18 +416,40 @@ window.vrRefreshSyncBadge=function(){
   el.className=enabled&&configured&&VR_SYNC_STATUS==='Synced'?'good':(VR_SYNC_STATUS==='Sync error'?'bad':'muted');
 };
 
-function vrSyncPayload(){return {db};}
+function vrSyncPayload(){
+  return {db,baseRevision:Number.isInteger(VR_CLOUD_REVISION)?VR_CLOUD_REVISION:null};
+}
 function vrBackupPayload(){return {db,page:tab,filters:pageFilters};}
 function vrScheduleSyncPush(){
   if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId){
     if(VR_CLOUD_APPLYING)return;
+    VR_CLOUD_DIRTY=true;
     clearTimeout(VR_CLOUD_PUSH_TIMER);
     VR_CLOUD_PUSH_TIMER=setTimeout(async()=>{
       try{
+        if(!Number.isInteger(VR_CLOUD_REVISION)){
+          throw new Error("Cloud revision is not initialized. Reload the latest cloud workspace before saving.");
+        }
         const r=await vrCloudFetch('/api/cloud/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:vrSyncPayload()})});
-        const j=await r.json(); if(!j.ok)throw new Error(j.error||'Cloud sync failed');
-        if(j.status)VR_CLOUD_STATUS=j.status; VR_SYNC_STATUS='Synced'; window.vrRefreshSyncBadge?.();
-      }catch(e){VR_SYNC_STATUS='Sync error';window.vrRefreshSyncBadge?.();console.warn('Cloud push failed:',e);}
+        const j=await r.json();
+        if(!j.ok)throw new Error(j.error||'Cloud sync failed');
+        const confirmed=Number(j.result?.revision);
+        if(!Number.isInteger(confirmed))throw new Error("Cloud did not confirm the saved revision.");
+        VR_CLOUD_REVISION=confirmed;
+        VR_CLOUD_DIRTY=false;
+        VR_CLOUD_CONFLICT_ALERTED=false;
+        if(j.status)VR_CLOUD_STATUS=j.status;
+        VR_SYNC_STATUS='Synced';
+        window.vrRefreshSyncBadge?.();
+      }catch(e){
+        VR_SYNC_STATUS='Sync error';
+        window.vrRefreshSyncBadge?.();
+        console.warn('Cloud push failed:',e);
+        if(/REVISION_CONFLICT|REVISION_REQUIRED/i.test(String(e?.message||e))&&!VR_CLOUD_CONFLICT_ALERTED){
+          VR_CLOUD_CONFLICT_ALERTED=true;
+          alert("Vetted Resupply protected your data: another device saved a newer cloud version, so this device was NOT allowed to overwrite it. Your local changes are still on this device. Do not make more edits here until the conflict is resolved.");
+        }
+      }
     },700);
     return;
   }
@@ -386,9 +468,19 @@ function vrScheduleSyncPush(){
 }
 function save(){
   localStorage.setItem(K,JSON.stringify(db));
+
+  // Desktop/local-server backup only.
   if(SERVER_BACKUP_READY && location.hostname !== "app.vettedresupply.com"){
-    try{fetch("/api/data/backup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(vrBackupPayload())}).catch(()=>{});}catch(_){}
+    try{
+      fetch("/api/data/backup",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(vrBackupPayload())
+      }).catch(()=>{});
+    }catch(_){}
   }
+
+  // Vetted Resupply Cloud sync.
   vrScheduleSyncPush();
 }
 function hw(id){return db.hardware.find(x=>x.id===id)} function sup(id){return db.suppliers.find(x=>x.id===id)}
@@ -525,7 +617,8 @@ function switchLocation(id){
   activeLocationId=id;localStorage.setItem(LOCATION_KEY,id);render();
 }
 function locationSelectorHtml(){
-if(VR_CLOUD_STATUS?.signedIn || localStorage.getItem(K)) ensureLocations(); const active=(db.locations||[]).filter(l=>l.active!==false);  return `<div class="location-switcher" title="Switch location"><span>Location</span><select onchange="switchLocation(this.value)">${active.map(l=>`<option value="${esc(l.id)}" ${l.id===activeLocationId?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>`;
+  ensureLocations();const active=db.locations.filter(l=>l.active!==false);
+  return `<div class="location-switcher" title="Switch location"><span>Location</span><select onchange="switchLocation(this.value)">${active.map(l=>`<option value="${esc(l.id)}" ${l.id===activeLocationId?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>`;
 }
 function getNavPages(){
   let order=[];try{order=JSON.parse(localStorage.getItem(NAV_KEY)||"[]")}catch(_){order=[]}
@@ -771,7 +864,8 @@ function go(page){
   render();
 }
 function render(){
-if(VR_CLOUD_STATUS?.signedIn || localStorage.getItem(K)) ensureLocations();  const pages=getNavPages();
+  ensureLocations();
+  const pages=getNavPages();
   if(!validPages.includes(tab))tab="dashboard";
   $("nav").innerHTML=locationSelectorHtml()+`<div class="nav-pages">${pages.map(([key,label])=>`<button draggable="true" data-page="${key}" class="nav-page-btn ${tab===key?"active":""}" onclick="go('${key}')" ondragstart="navDragStart(event)" ondragend="navDragEnd(event)" ondragover="navDragOver(event)">${label}</button>`).join("")}</div>`;
   if(tab==="purchasing"){purchasing();return}
@@ -788,7 +882,6 @@ if(VR_CLOUD_STATUS?.signedIn || localStorage.getItem(K)) ensureLocations();  con
     return;
   }
   if(tab==="locations"){locationsPage();return}
-  if(tab==="account"){accountPage();return}
   const fn=({dashboard,products,hardware,suppliers,orders})[tab]||dashboard;
   $("app").innerHTML=fn();
 }
@@ -882,25 +975,14 @@ function cloudAccountCardHtml(){
     `:`
       <div class="sync-simple-box">
         <h3>${signed?'Set up your business':'Create an account or sign in'}</h3>
-        ${!signed?`<div class="grid"><div><label>Email</label><input id="cloud-email" type="email" autocomplete="email" placeholder="you@example.com" onkeydown="vrCloudLoginKey(event)"></div><div><label>Password</label><input id="cloud-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" onkeydown="vrCloudLoginKey(event)"></div></div>
-        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button onclick="vrCloudSignUp()">Create account</button><button onclick="vrCloudSignIn()">Sign in</button><button onclick="vrCloudForgotPassword()">Forgot password</button></div>`:''}
+        ${!signed?`<div class="grid"><div><label>Email</label><input id="cloud-email" type="email" autocomplete="email" placeholder="you@example.com"></div><div><label>Password</label><input id="cloud-password" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="vrCloudSignUp()">Create account</button><button onclick="vrCloudSignIn()">Sign in</button><button onclick="vrCloudForgotPassword()">Forgot password</button></div>`:''}
         ${signed?`<label style="margin-top:12px">Business name</label><input id="cloud-business-name" value="${esc(c.businessName||'')}" placeholder="Example: Vetted Leather"><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="vrCloudCreateBusiness()">Create my business</button>${support&&c.legacyAvailable?`<button onclick="vrCloudClaimLegacy()">Import legacy workspace</button>`:''}</div><p class="muted" style="margin-top:10px">Your business data will be backed up and synced automatically across computers signed into this account.</p>`:''}
       </div>
     `}
     ${support?`<details class="sync-advanced" style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">Support & migration tools</summary><p class="muted">Internal recovery tools for Vetted Resupply support. Normal customers do not need these.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button onclick="vrCloudCopySetupSql()">Copy cloud setup SQL</button><button onclick="openExternal('https://supabase.com/dashboard')">Open Supabase ↗</button></div></details>`:''}
   </div>`;
 }
-
-function accountPage(){
-  $("app").innerHTML=`<div class="between"><div><h1>Account</h1><p class="muted">Sign in to Vetted Resupply Cloud and manage this device's account connection.</p></div></div>${cloudAccountCardHtml()}`;
-  setTimeout(()=>{
-    const email=document.getElementById('cloud-email');
-    if(email && !email.value) email.value=localStorage.getItem('vetted_resupply_last_email')||'';
-  },0);
-}
-window.vrCloudLoginKey=function(event){
-  if(event?.key==='Enter'){ event.preventDefault(); window.vrCloudSignIn?.(); }
-};
 
 function sharedWorkspaceCardHtml(){
   return `<div class="card">
@@ -945,6 +1027,7 @@ function locationsPage(){
   $("app").innerHTML=`<div class="between"><div><h1>Locations</h1><p class="muted">Keep inventory, orders and purchasing separate for each business location.</p></div><button class="primary" onclick="addLocation()">+ Add location</button></div>
     <div class="notice"><b>Currently viewing:</b> ${esc(active.name)}. Products, BOMs, suppliers and supply definitions are shared company-wide. Inventory counts, reorder minimums, orders and purchasing are separated by location.</div>
     ${db.locations.map(l=>{const orderCount=(db.orders||[]).filter(o=>o.locationId===l.id).length;return `<div class="card location-card ${l.id===activeLocationId?'location-current':''}"><div class="between"><div><h3>${esc(l.name)} ${l.id===activeLocationId?'<span class="pill">Current</span>':''}${l.active===false?'<span class="pill">Archived</span>':''}</h3><div class="muted">${orderCount} order${orderCount===1?'':'s'} saved to this location</div></div><div class="row">${l.active!==false&&l.id!==activeLocationId?`<button class="primary" onclick="switchLocation('${l.id}')">Switch here</button>`:''}<button onclick="renameLocation('${l.id}')">Rename</button>${l.active===false?`<button onclick="toggleLocationArchive('${l.id}')">Restore</button>`:(db.locations.filter(x=>x.active!==false).length>1?`<button onclick="toggleLocationArchive('${l.id}')">Archive</button>`:'')}</div></div></div>`}).join('')}
+    ${cloudAccountCardHtml()}
     ${vrSupportMode()?`<details class="card sync-advanced"><summary style="cursor:pointer;font-weight:800">Legacy shared-workspace recovery</summary><p class="muted">Internal fallback controls retained for support and migration recovery.</p>${sharedWorkspaceCardHtml()}</details>`:''}
     <div class="card"><h2>Navigation layout</h2><p class="muted">Drag the top menu buttons left or right into any order you prefer. Your layout is saved on this computer and does not rearrange another user's menu.</p><button onclick="resetNavOrder()">Reset menu order</button></div>`;
   window.vrRefreshSyncBadge?.();
@@ -2220,70 +2303,27 @@ window.shopifyPage=function(){
     el.className=enabled&&configured&&VR_SYNC_STATUS==='Synced'?'good':(VR_SYNC_STATUS==='Sync error'?'bad':'muted');
   };
   window.vrLoadSyncConfig=async function(){
-    if(location.hostname === "app.vettedresupply.com") return;
-    try{const r=await fetch('/api/sync/config'),j=await r.json();if(j.ok){VR_SYNC_CONFIG=j.config;VR_SYNC_STATUS=j.config?.enabled?'Synced':'Local only';window.vrRefreshSyncBadge?.();}}catch(_){}
-  }
-window.vrLoadCloudStatus=async function(){
-  try{
-    const r=await vrCloudFetch('/api/cloud/status?ts='+Date.now(),{
-      cache:'no-store'
-    });
-    const j=await r.json();
+  // Legacy desktop sync config only — the web app uses Vetted Resupply Cloud.
+  if(location.hostname === "app.vettedresupply.com") return;
 
+  try{
+    const r=await fetch('/api/sync/config');
+    const j=await r.json();
     if(j.ok){
-      VR_CLOUD_STATUS=j.status;
-      if(VR_CLOUD_STATUS?.businessId)VR_SYNC_STATUS='Synced';
+      VR_SYNC_CONFIG=j.config;
+      VR_SYNC_STATUS=j.config?.enabled?'Synced':'Local only';
+      window.vrRefreshSyncBadge?.();
     }
-  }catch(e){
-    console.warn('Cloud status unavailable:',e);
-  }
-};    
+  }catch(_){}
+}
+  window.vrLoadCloudStatus=async function(){
+    try{const r=await vrCloudFetch('/api/cloud/status?ts='+Date.now(),{cache:'no-store'}),j=await r.json();if(j.ok){VR_CLOUD_STATUS=j.status;const rev=Number(j.status?.lastRevision);if(Number.isInteger(rev)&&rev>=0&&!VR_CLOUD_DIRTY)VR_CLOUD_REVISION=rev;if(VR_CLOUD_STATUS?.businessId)VR_SYNC_STATUS='Synced';}}catch(e){console.warn('Cloud status unavailable:',e);}
+  };
   function vrCloudField(id){return String(document.getElementById(id)?.value||'').trim();}
   window.vrCloudCopySetupSql=async function(){try{const r=await vrCloudFetch('/api/cloud/setup-sql'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load Cloud setup SQL');await navigator.clipboard.writeText(j.sql||'');alert('Cloud Accounts setup SQL copied. Open the SAME Supabase project you already use, paste it into SQL Editor, and click Run. This is an owner-only one-time step.');}catch(e){alert(e.message);}};
   window.vrCloudSignUp=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await vrCloudFetch('/api/cloud/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not create account');if(j.needsEmailConfirmation){alert('Account created. Check your email and confirm the address, then come back here and click Sign in.');}else{alert('Account created and signed in.');}await vrLoadCloudStatus();render();}catch(e){alert(e.message);}};
-window.vrCloudSignIn=async function(){
-  try{
-    const email=vrCloudField('cloud-email');
-    const password=vrCloudField('cloud-password');
-
-    const r=await vrCloudFetch('/api/cloud/signin',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password})
-    });
-
-    const j=await r.json();
-    if(!j.ok)throw new Error(j.error||'Could not sign in');
-
-    vrCloudStoreAccount(j.account);
-    localStorage.setItem('vetted_resupply_last_email',email);
-    VR_CLOUD_STATUS=j.status;
-
-    if(VR_CLOUD_STATUS?.businessId){
-      const p=await vrCloudFetch('/api/cloud/pull-force',{
-        method:'POST'
-      });
-
-      const pj=await p.json();
-      if(!pj.ok)throw new Error(pj.error||'Could not load cloud data');
-
-      if(pj.data?.db){
-        VR_CLOUD_APPLYING=true;
-        db=pj.data.db;
-        ensureLocations();
-        localStorage.setItem(K,JSON.stringify(db));
-        VR_CLOUD_APPLYING=false;
-      }
-
-      window.vrStartCloudPolling?.();
-    }
-
-    render();
-  }catch(e){
-    VR_CLOUD_APPLYING=false;
-    alert(e.message);
-  }
-};
+  window.vrCloudSignIn=async function(){try{const email=vrCloudField('cloud-email'),password=vrCloudField('cloud-password');const r=await vrCloudFetch('/api/cloud/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign in');vrCloudStoreAccount(j.account);
+VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){vrApplyCloudWorkspace(pj.data.db,pj.revision,"sign-in cloud restore");}}render();alert(VR_CLOUD_STATUS?.businessId?'Signed in. Your Vetted Resupply business is connected on this computer.':'Signed in. Now move your existing workspace into this account.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrCloudForgotPassword=async function(){
     try{
       const email=vrCloudField('cloud-email');
@@ -2326,47 +2366,34 @@ window.vrCloudSignIn=async function(){
     }catch(e){alert(e.message);}
   };
   window.vrCloudClaimLegacy=async function(){if(!confirm('Copy your current shared workspace into your Vetted Resupply Cloud account? The old workspace will be kept as a safety fallback.'))return;try{const businessName=vrCloudField('cloud-business-name')||'Vetted Leather';const r=await vrCloudFetch('/api/cloud/claim-legacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName})}),j=await r.json();if(!j.ok)throw new Error(j.error||'Migration failed');VR_CLOUD_STATUS=j.status;VR_SYNC_CONFIG={...(VR_SYNC_CONFIG||{}),enabled:false};VR_SYNC_STATUS='Synced';window.vrStartCloudPolling?.();render();alert('Migration complete. Your existing products, supplies, inventory, orders, BOMs and locations are now connected to your Vetted Resupply account. The legacy workspace was left intact as a backup.');}catch(e){alert(e.message);}};
- window.vrCloudSignOut=async function(){
-  try{
-    const r=await vrCloudFetch('/api/cloud/signout',{method:'POST'});
-    const j=await r.json();
-    if(!j.ok)throw new Error(j.error||'Could not sign out');
-
-    clearInterval(VR_CLOUD_POLL_TIMER);
-    clearTimeout(VR_CLOUD_PUSH_TIMER);
-    VR_CLOUD_BUSY=false;
-    VR_CLOUD_APPLYING=true;
-
-    vrCloudClearTokens();
-    localStorage.removeItem(K);
-    localStorage.removeItem(PAGE_KEY);
-    localStorage.removeItem(FILTER_KEY);
-    localStorage.removeItem(LOCATION_KEY);
-
-    db={
-      suppliers:[],
-      hardware:[],
-      products:[],
-      orders:[],
-      bom:{},
-      inventory:{},
-      locations:[]
-    };
-    activeLocationId="";
-    tab="dashboard";
-
-    VR_CLOUD_STATUS=j.status||{signedIn:false,businessId:null};
-    VR_SYNC_STATUS="Local only";
-    VR_CLOUD_APPLYING=false;
-    render();
-  }catch(e){
-    VR_CLOUD_APPLYING=false;
-    alert(e.message);
-  }
-};
-  window.vrCloudRefreshBusinesses=async function(){try{const r=await vrCloudFetch('/api/cloud/businesses'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load businesses');if((j.businesses||[]).length===1){await vrCloudFetch('/api/cloud/select-business',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessId:j.businesses[0].business_id})});await vrLoadCloudStatus();window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){VR_CLOUD_APPLYING=true;db=pj.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;}render();}else alert('This account has '+(j.businesses||[]).length+' businesses. Business selection will be added before multi-business customer release.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
-  window.vrCloudPullNow=async function(){try{const r=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),j=await r.json();if(!j.ok||!j.data?.db)throw new Error(j.error||'Cloud pull failed');VR_CLOUD_APPLYING=true;db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_CLOUD_APPLYING=false;await vrLoadCloudStatus();render();alert('Latest cloud data loaded.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
-  window.vrPollCloud=async function(){if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY)return;VR_CLOUD_BUSY=true;try{const r=await vrCloudFetch('/api/cloud/pull?ts='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}}),j=await r.json();if(!j.ok)throw new Error(j.error||'Cloud sync failed');if(j.status)VR_CLOUD_STATUS=j.status;if(j.changed&&j.data?.db){VR_CLOUD_APPLYING=true;try{db=j.data.db;ensureLocations();localStorage.setItem(K,JSON.stringify(db));VR_SYNC_STATUS='Synced';render();}finally{VR_CLOUD_APPLYING=false;}}else VR_SYNC_STATUS='Synced';window.vrRefreshSyncBadge?.();}catch(e){VR_SYNC_STATUS='Sync error';console.warn('Cloud poll failed:',e);}finally{VR_CLOUD_BUSY=false;}};
+  window.vrCloudSignOut=async function(){if(!confirm('Sign out of Vetted Resupply Cloud on this computer? Your local data will remain here.'))return;try{const r=await vrCloudFetch('/api/cloud/signout',{method:'POST'}),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not sign out');VR_CLOUD_STATUS=j.status;render();}catch(e){alert(e.message);}};
+  window.vrCloudRefreshBusinesses=async function(){try{const r=await vrCloudFetch('/api/cloud/businesses'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load businesses');if((j.businesses||[]).length===1){await vrCloudFetch('/api/cloud/select-business',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessId:j.businesses[0].business_id})});await vrLoadCloudStatus();window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){vrApplyCloudWorkspace(pj.data.db,pj.revision,"sign-in cloud restore");}render();}else alert('This account has '+(j.businesses||[]).length+' businesses. Business selection will be added before multi-business customer release.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
+  window.vrCloudPullNow=async function(){try{if(VR_CLOUD_DIRTY&&!confirm('This device has local changes that have not been accepted by the cloud. Pulling now will replace the working copy after creating a local recovery snapshot. Continue?'))return;const r=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),j=await r.json();if(!j.ok||!j.data?.db)throw new Error(j.error||'Cloud pull failed');vrApplyCloudWorkspace(j.data.db,j.revision,"manual cloud pull");await vrLoadCloudStatus();render();alert('Latest cloud data loaded.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
+  window.vrPollCloud=async function(){
+    if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY||VR_CLOUD_DIRTY)return;
+    VR_CLOUD_BUSY=true;
+    try{
+      const r=await vrCloudFetch('/api/cloud/pull?ts='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+      const j=await r.json();
+      if(!j.ok)throw new Error(j.error||'Cloud sync failed');
+      if(j.status)VR_CLOUD_STATUS=j.status;
+      const incomingRevision=Number(j.revision);
+      if(j.changed&&j.data?.db&&Number.isInteger(incomingRevision)&&(VR_CLOUD_REVISION===null||incomingRevision>VR_CLOUD_REVISION)){
+        vrApplyCloudWorkspace(j.data.db,incomingRevision,"automatic cloud sync");
+        VR_SYNC_STATUS='Synced';
+        render();
+      }else{
+        if(Number.isInteger(incomingRevision)&&VR_CLOUD_REVISION===null)VR_CLOUD_REVISION=incomingRevision;
+        VR_SYNC_STATUS='Synced';
+      }
+      window.vrRefreshSyncBadge?.();
+    }catch(e){
+      VR_SYNC_STATUS='Sync error';
+      console.warn('Cloud poll failed:',e);
+    }finally{
+      VR_CLOUD_BUSY=false;
+    }
+  };
   window.vrStartCloudPolling=function(){clearInterval(VR_CLOUD_POLL_TIMER);if(VR_CLOUD_STATUS?.businessId){window.vrPollCloud?.();VR_CLOUD_POLL_TIMER=setInterval(()=>window.vrPollCloud?.(),3000);}};
 
   function vrSyncField(id){return String(document.getElementById(id)?.value||'').trim();}
@@ -2483,7 +2510,7 @@ window.vrCloudSignIn=async function(){
     return `Current version: v${state?.currentVersion||''}`;
   };
   window.vrLoadUpdatePanel=async function(){
-    if(location.hostname === "app.vettedresupply.com") return;
+if(location.hostname === "app.vettedresupply.com") return;
     const box=document.getElementById('vr-update-panel');if(!box)return;
     try{
       const r=await fetch('/api/update/status'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not read update status');
@@ -2527,10 +2554,9 @@ window.vrCloudSignIn=async function(){
         <h2>Import portable backup</h2><p class="muted">Importing replaces the current working database. A server restore point is kept so the previous data can be recovered.</p>
         <input type="file" accept=".json,application/json" onchange="v2Import(this)">
       </div>
-      ${location.hostname==='127.0.0.1'||location.hostname==='localhost'?`<div class="card"><div class="between"><div><h2>Automatic app updates</h2><p class="muted">Once the owner connects a release channel, every installed computer can detect, download and install new Vetted Resupply versions automatically.</p></div></div><div id="vr-update-panel"><span class="muted">Loading update status…</span></div></div>`:''}
+      <div class="card"><div class="between"><div><h2>Automatic app updates</h2><p class="muted">Once the owner connects a release channel, every installed computer can detect, download and install new Vetted Resupply versions automatically.</p></div></div><div id="vr-update-panel"><span class="muted">Loading update status…</span></div></div>
 `;
-    v2LoadRestorePoints();
-    if(location.hostname==='127.0.0.1'||location.hostname==='localhost')vrLoadUpdatePanel();
+    v2LoadRestorePoints();vrLoadUpdatePanel();
   };
   window.v2LoadRestorePoints=async function(){
     const box=$("restore-points"); if(!box)return;
@@ -2558,28 +2584,10 @@ window.vrCloudSignIn=async function(){
 
 })();
 
-async function vrLoadDisplayedVersion(){
-  const el=document.getElementById('vr-brand-version');
-  if(!el)return;
-  if(location.hostname!=='127.0.0.1'&&location.hostname!=='localhost'){
-    el.textContent='Version 2.19.0 • Mobile-ready + inventory resupply';
-    return;
-  }
-  try{
-    const r=await fetch('/api/update/status',{cache:'no-store'});
-    if(!r.ok)return;
-    const text=await r.text();
-    if(!text.trim())return;
-    const j=JSON.parse(text);
-    const v=j?.state?.currentVersion;
-    if(v)el.textContent=`Version ${v} • Mobile-ready + inventory resupply`;
-  }catch(_){}
-}
-
 // Initial draw happens only after Inventory and Backup functions exist.
 // Restore from the permanent server-side backup if browser storage was cleared.
 async function restorePermanentBackupIfNeeded(){
-  if(location.hostname === "app.vettedresupply.com") return;
+if(location.hostname === "app.vettedresupply.com") return;
   if(INITIAL_LOCAL_DATA_PRESENT)return;
   try{
     const r=await fetch("/api/data/backup");
@@ -2594,77 +2602,27 @@ async function restorePermanentBackupIfNeeded(){
   }catch(_){}
 }
 (async()=>{
-  // Establish authentication before showing or restoring any business data.
+  await restorePermanentBackupIfNeeded();
+  SERVER_BACKUP_READY=true;
+  ensureLocations();save();
+  tab=validPages.includes(localStorage.getItem(PAGE_KEY))?localStorage.getItem(PAGE_KEY):"dashboard";
+
+  // Live sync is optional. A cloud/configuration failure must never prevent the
+  // normal Vetted Resupply interface from loading.
   try{
     await window.vrLoadSyncConfig?.();
     await window.vrLoadCloudStatus?.();
+    if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId) await window.vrPollCloud?.();
+    else if(VR_SYNC_CONFIG?.enabled&&VR_SYNC_CONFIG?.configured) await window.vrPollSharedWorkspace?.();
   }catch(e){
-    console.warn("Cloud status startup check skipped:",e);
-  }
-
-  if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId){
-    // Cloud is the source of truth for a signed-in account. Pull BEFORE enabling
-    // backup/push so an empty local database can never overwrite cloud data.
-    try{
-      const r=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'});
-      const j=await r.json();
-      if(!j.ok)throw new Error(j.error||'Could not load cloud data');
-      if(j.status)VR_CLOUD_STATUS=j.status;
-      if(j.data?.db){
-        VR_CLOUD_APPLYING=true;
-        db=j.data.db;
-        ensureLocations();
-        localStorage.setItem(K,JSON.stringify(db));
-        VR_CLOUD_APPLYING=false;
-        VR_SYNC_STATUS='Synced';
-      }
-    }catch(e){
-      VR_CLOUD_APPLYING=false;
-      VR_SYNC_STATUS='Sync error';
-      console.warn('Initial cloud pull failed:',e);
-    }
-  }else{
-    // Signed-out devices must not display cached business data.
-    localStorage.removeItem(K);
-    localStorage.removeItem(PAGE_KEY);
-    localStorage.removeItem(FILTER_KEY);
-    localStorage.removeItem(LOCATION_KEY);
-    db={
-      suppliers:[],
-      hardware:[],
-      products:[],
-      orders:[],
-      bom:{},
-      inventory:{},
-      locations:[]
-    };
-    activeLocationId="";
-    tab="dashboard";
-  }
-
-  // Only enable normal backup/push behavior after authentication and the first
-  // cloud pull have completed.
-  SERVER_BACKUP_READY=true;
-
-  if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId){
-    tab=validPages.includes(localStorage.getItem(PAGE_KEY))
-      ? localStorage.getItem(PAGE_KEY)
-      : "dashboard";
+    console.warn("Cloud/live sync startup skipped:",e);
+    VR_SYNC_STATUS="Sync error";
   }
 
   render();
-  await vrLoadDisplayedVersion();
   try{setTimeout(()=>window.vrCloudCompletePasswordReset?.(),350);}catch(_){}
 
-  try{
-    window.vrStartCloudPolling?.();
-    if(!VR_CLOUD_STATUS?.businessId&&VR_SYNC_CONFIG?.enabled&&VR_SYNC_CONFIG?.configured){
-      await window.vrPollSharedWorkspace?.();
-      window.vrStartSyncPolling?.();
-    }
-  }catch(e){
-    console.warn("Sync polling unavailable:",e);
-  }
+  try{window.vrStartCloudPolling?.(); if(!VR_CLOUD_STATUS?.businessId)window.vrStartSyncPolling?.();}catch(e){console.warn("Sync polling unavailable:",e);}
 })();
 
 
