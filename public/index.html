@@ -2317,7 +2317,7 @@ window.shopifyPage=function(){
   }catch(_){}
 }
   window.vrLoadCloudStatus=async function(){
-    try{const r=await vrCloudFetch('/api/cloud/status?ts='+Date.now(),{cache:'no-store'}),j=await r.json();if(j.ok){VR_CLOUD_STATUS=j.status;const rev=Number(j.status?.lastRevision);if(Number.isInteger(rev)&&rev>=0&&!VR_CLOUD_DIRTY)VR_CLOUD_REVISION=rev;if(VR_CLOUD_STATUS?.businessId)VR_SYNC_STATUS='Synced';}}catch(e){console.warn('Cloud status unavailable:',e);}
+    try{const r=await vrCloudFetch('/api/cloud/status?ts='+Date.now(),{cache:'no-store'}),j=await r.json();if(j.ok){VR_CLOUD_STATUS=j.status;if(VR_CLOUD_STATUS?.businessId && VR_CLOUD_REVISION===null)VR_SYNC_STATUS='Checking cloud';}}catch(e){console.warn('Cloud status unavailable:',e);}
   };
   function vrCloudField(id){return String(document.getElementById(id)?.value||'').trim();}
   window.vrCloudCopySetupSql=async function(){try{const r=await vrCloudFetch('/api/cloud/setup-sql'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load Cloud setup SQL');await navigator.clipboard.writeText(j.sql||'');alert('Cloud Accounts setup SQL copied. Open the SAME Supabase project you already use, paste it into SQL Editor, and click Run. This is an owner-only one-time step.');}catch(e){alert(e.message);}};
@@ -2382,13 +2382,15 @@ VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPol
         vrApplyCloudWorkspace(j.data.db,incomingRevision,"automatic cloud sync");
         VR_SYNC_STATUS='Synced';
         render();
-      }else{
-        if(Number.isInteger(incomingRevision)&&VR_CLOUD_REVISION===null)VR_CLOUD_REVISION=incomingRevision;
+      }else if(Number.isInteger(incomingRevision) && incomingRevision===VR_CLOUD_REVISION && vrValidWorkspace(j.data?.db)){
         VR_SYNC_STATUS='Synced';
+      }else{
+        throw new Error('Cloud revision/data mismatch. The local workspace was not replaced.');
       }
       window.vrRefreshSyncBadge?.();
     }catch(e){
       VR_SYNC_STATUS='Sync error';
+      window.vrRefreshSyncBadge?.();
       console.warn('Cloud poll failed:',e);
     }finally{
       VR_CLOUD_BUSY=false;
@@ -2604,12 +2606,19 @@ if(location.hostname === "app.vettedresupply.com") return;
 (async()=>{
   await restorePermanentBackupIfNeeded();
   SERVER_BACKUP_READY=true;
-  ensureLocations();save();
+  ensureLocations();
+  // Initialization is not a user edit. Never push local data before cloud reconciliation.
   tab=validPages.includes(localStorage.getItem(PAGE_KEY))?localStorage.getItem(PAGE_KEY):"dashboard";
 
   // Live sync is optional. A cloud/configuration failure must never prevent the
   // normal Vetted Resupply interface from loading.
   try{
+    // Store the pre-sync working copy separately, including the phone's unsynced edits.
+    try{
+      const preSyncKey=K+'_pre_sync_20261014';
+      if(!localStorage.getItem(preSyncKey))
+        localStorage.setItem(preSyncKey,JSON.stringify({savedAt:new Date().toISOString(),db}));
+    }catch(e){console.warn('Could not save pre-sync snapshot:',e);}
     await window.vrLoadSyncConfig?.();
     await window.vrLoadCloudStatus?.();
     if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId) await window.vrPollCloud?.();
