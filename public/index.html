@@ -367,6 +367,9 @@ let VR_CLOUD_BUSY=false;
 let VR_CLOUD_REVISION=null;
 let VR_CLOUD_DIRTY=false;
 let VR_CLOUD_CONFLICT_ALERTED=false;
+let VR_CLOUD_EDIT_SEQUENCE=0;
+let VR_CLOUD_PUSH_IN_FLIGHT=false;
+let VR_CLOUD_CONFLICT=false;
 const VR_CLOUD_RECOVERY_KEY=K+"_cloud_recovery";
 
 function vrValidWorkspace(candidate){
@@ -402,6 +405,7 @@ function vrApplyCloudWorkspace(candidate,revision,reason){
     if(Number.isInteger(n)&&n>=0)VR_CLOUD_REVISION=n;
     VR_CLOUD_DIRTY=false;
     VR_CLOUD_CONFLICT_ALERTED=false;
+    VR_CLOUD_CONFLICT=false;
   }finally{
     VR_CLOUD_APPLYING=false;
   }
@@ -423,34 +427,13 @@ function vrBackupPayload(){return {db,page:tab,filters:pageFilters};}
 function vrScheduleSyncPush(){
   if(VR_CLOUD_STATUS?.signedIn&&VR_CLOUD_STATUS?.businessId){
     if(VR_CLOUD_APPLYING)return;
+    VR_CLOUD_EDIT_SEQUENCE++;
     VR_CLOUD_DIRTY=true;
+    VR_SYNC_STATUS='Saving';
+    window.vrRefreshSyncBadge?.();
+    if(VR_CLOUD_CONFLICT)return; // preserve local edits until conflict is resolved
     clearTimeout(VR_CLOUD_PUSH_TIMER);
-    VR_CLOUD_PUSH_TIMER=setTimeout(async()=>{
-      try{
-        if(!Number.isInteger(VR_CLOUD_REVISION)){
-          throw new Error("Cloud revision is not initialized. Reload the latest cloud workspace before saving.");
-        }
-        const r=await vrCloudFetch('/api/cloud/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:vrSyncPayload()})});
-        const j=await r.json();
-        if(!j.ok)throw new Error(j.error||'Cloud sync failed');
-        const confirmed=Number(j.result?.revision);
-        if(!Number.isInteger(confirmed))throw new Error("Cloud did not confirm the saved revision.");
-        VR_CLOUD_REVISION=confirmed;
-        VR_CLOUD_DIRTY=false;
-        VR_CLOUD_CONFLICT_ALERTED=false;
-        if(j.status)VR_CLOUD_STATUS=j.status;
-        VR_SYNC_STATUS='Synced';
-        window.vrRefreshSyncBadge?.();
-      }catch(e){
-        VR_SYNC_STATUS='Sync error';
-        window.vrRefreshSyncBadge?.();
-        console.warn('Cloud push failed:',e);
-        if(/REVISION_CONFLICT|REVISION_REQUIRED/i.test(String(e?.message||e))&&!VR_CLOUD_CONFLICT_ALERTED){
-          VR_CLOUD_CONFLICT_ALERTED=true;
-          alert("Vetted Resupply protected your data: another device saved a newer cloud version, so this device was NOT allowed to overwrite it. Your local changes are still on this device. Do not make more edits here until the conflict is resolved.");
-        }
-      }
-    },700);
+    VR_CLOUD_PUSH_TIMER=setTimeout(()=>window.vrFlushCloudPush?.(),700);
     return;
   }
   if(VR_SYNC_APPLYING||!VR_SYNC_CONFIG?.enabled||!VR_SYNC_CONFIG?.configured)return;
@@ -466,6 +449,55 @@ function vrScheduleSyncPush(){
     }catch(e){VR_SYNC_STATUS='Sync error';window.vrRefreshSyncBadge?.();}
   },700);
 }
+window.vrFlushCloudPush=async function(){
+  if(VR_CLOUD_PUSH_IN_FLIGHT||VR_CLOUD_CONFLICT||!VR_CLOUD_DIRTY)return;
+  if(VR_CLOUD_BUSY){VR_CLOUD_PUSH_TIMER=setTimeout(()=>window.vrFlushCloudPush?.(),500);return;}
+  if(!Number.isInteger(VR_CLOUD_REVISION)){
+    VR_SYNC_STATUS='Sync error';window.vrRefreshSyncBadge?.();
+    console.warn('Cloud revision is not initialized; local edits retained.');return;
+  }
+  VR_CLOUD_PUSH_IN_FLIGHT=true;
+  const sequence=VR_CLOUD_EDIT_SEQUENCE;
+  const snapshot=JSON.stringify(db);
+  const baseRevision=VR_CLOUD_REVISION;
+  try{
+    const r=await vrCloudFetch('/api/cloud/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{db:JSON.parse(snapshot),baseRevision}})});
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'Cloud sync failed');
+    const confirmed=Number(j.result?.revision);
+    if(!Number.isInteger(confirmed))throw new Error('Cloud did not confirm the saved revision.');
+    VR_CLOUD_REVISION=confirmed;
+    if(j.status)VR_CLOUD_STATUS=j.status;
+    if(sequence===VR_CLOUD_EDIT_SEQUENCE){
+      VR_CLOUD_DIRTY=false;
+      VR_CLOUD_CONFLICT_ALERTED=false;
+      VR_SYNC_STATUS='Synced';
+    }else{
+      // An edit occurred during the upload. It must be sent at the newly confirmed revision.
+      VR_SYNC_STATUS='Saving';
+    }
+    window.vrRefreshSyncBadge?.();
+  }catch(e){
+    const conflict=/REVISION_CONFLICT|REVISION_REQUIRED/i.test(String(e?.message||e));
+    if(conflict){
+      VR_CLOUD_CONFLICT=true;
+      VR_SYNC_STATUS='Conflict';
+      vrSaveCloudRecovery('unaccepted local edits after revision conflict');
+      if(!VR_CLOUD_CONFLICT_ALERTED){
+        VR_CLOUD_CONFLICT_ALERTED=true;
+        alert('Cloud revision conflict: this device kept its local changes, but they are NOT confirmed saved. Do not make more edits here. Resolve the conflict before continuing.');
+      }
+    }else VR_SYNC_STATUS='Sync error';
+    console.warn('Cloud push failed:',e);
+    window.vrRefreshSyncBadge?.();
+  }finally{
+    VR_CLOUD_PUSH_IN_FLIGHT=false;
+    if(VR_CLOUD_DIRTY&&!VR_CLOUD_CONFLICT&&VR_SYNC_STATUS==='Saving'){
+      clearTimeout(VR_CLOUD_PUSH_TIMER);
+      VR_CLOUD_PUSH_TIMER=setTimeout(()=>window.vrFlushCloudPush?.(),250);
+    }
+  }
+};
 function save(){
   localStorage.setItem(K,JSON.stringify(db));
 
@@ -2370,19 +2402,22 @@ VR_CLOUD_STATUS=j.status; if(VR_CLOUD_STATUS?.businessId){window.vrStartCloudPol
   window.vrCloudRefreshBusinesses=async function(){try{const r=await vrCloudFetch('/api/cloud/businesses'),j=await r.json();if(!j.ok)throw new Error(j.error||'Could not load businesses');if((j.businesses||[]).length===1){await vrCloudFetch('/api/cloud/select-business',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessId:j.businesses[0].business_id})});await vrLoadCloudStatus();window.vrStartCloudPolling?.();const p=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),pj=await p.json();if(pj.ok&&pj.data?.db){vrApplyCloudWorkspace(pj.data.db,pj.revision,"sign-in cloud restore");}render();}else alert('This account has '+(j.businesses||[]).length+' businesses. Business selection will be added before multi-business customer release.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrCloudPullNow=async function(){try{if(VR_CLOUD_DIRTY&&!confirm('This device has local changes that have not been accepted by the cloud. Pulling now will replace the working copy after creating a local recovery snapshot. Continue?'))return;const r=await vrCloudFetch('/api/cloud/pull-force',{method:'POST'}),j=await r.json();if(!j.ok||!j.data?.db)throw new Error(j.error||'Cloud pull failed');vrApplyCloudWorkspace(j.data.db,j.revision,"manual cloud pull");await vrLoadCloudStatus();render();alert('Latest cloud data loaded.');}catch(e){VR_CLOUD_APPLYING=false;alert(e.message);}};
   window.vrPollCloud=async function(){
-    if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY||VR_CLOUD_DIRTY)return;
+    if(!VR_CLOUD_STATUS?.signedIn||!VR_CLOUD_STATUS?.businessId||VR_CLOUD_APPLYING||VR_CLOUD_BUSY||VR_CLOUD_DIRTY||VR_CLOUD_PUSH_IN_FLIGHT||VR_CLOUD_CONFLICT)return;
     VR_CLOUD_BUSY=true;
+    const pollSequence=VR_CLOUD_EDIT_SEQUENCE;
     try{
       const r=await vrCloudFetch('/api/cloud/pull?ts='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
       const j=await r.json();
       if(!j.ok)throw new Error(j.error||'Cloud sync failed');
+      // A user edit may have happened while the network request was pending.
+      if(VR_CLOUD_DIRTY||VR_CLOUD_PUSH_IN_FLIGHT||pollSequence!==VR_CLOUD_EDIT_SEQUENCE)return;
       if(j.status)VR_CLOUD_STATUS=j.status;
       const incomingRevision=Number(j.revision);
       if(j.changed&&j.data?.db&&Number.isInteger(incomingRevision)&&(VR_CLOUD_REVISION===null||incomingRevision>VR_CLOUD_REVISION)){
         vrApplyCloudWorkspace(j.data.db,incomingRevision,"automatic cloud sync");
         VR_SYNC_STATUS='Synced';
         render();
-      }else if(Number.isInteger(incomingRevision) && incomingRevision===VR_CLOUD_REVISION && vrValidWorkspace(j.data?.db)){
+      }else if(Number.isInteger(incomingRevision) && incomingRevision===VR_CLOUD_REVISION){
         VR_SYNC_STATUS='Synced';
       }else{
         throw new Error('Cloud revision/data mismatch. The local workspace was not replaced.');
